@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+breakout_client
+breakout_server
