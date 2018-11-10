@@ -78,7 +78,7 @@ int transfer (int src_sock) {
     char buff[bufflen];
     int len = bufflen;
     int i;
-    int getlen = 0, sendlen = 0,sendlen_all=0;
+    int getlen = 0, sendlen = 0, sendlen_all = 0;
 
     if ( (getlen = recv (src_sock, buff, len, 0)) <= 0) {
         perror ("recv error");
@@ -87,34 +87,43 @@ int transfer (int src_sock) {
 
     map_iv_iter tep1;
     tep1 = sockfd_reflects.find (src_sock);
-    if (tep1 != sockfd_reflects.end() && tep1->second.size()>0) {
+    if (tep1 != sockfd_reflects.end() && tep1->second.size() > 0) {
 
         for (i = 0; i < tep1->second.size(); ++i) {
 
             if ( (sendlen = send (tep1->second[i], buff, getlen, 0)) <= 0) {
-                perror ("send error");
-                return -1;
+                perror ("send error,erasing the socket..");
+                //return 0;
+                tep1->second.erase (tep1->second.begin() + i);
             }
-            sendlen_all+=sendlen;
+            sendlen_all += sendlen;
         }
-        cout << "get:" << getlen << "  send average:" << sendlen_all/i << endl;
+        cout << "get:" << getlen << "  send average:" << sendlen_all / i << endl;
 
-        return sendlen_all/i;
+        return sendlen_all / i;
     }
     return -1;
 }
 
-int build_conn (int sock1, int sock2) {
+int child_proc_loop (int sock1) {
+    while (transfer (sock1) != -1) ;
+    exit (-1);
+}
+
+int build_conn (int sock1) {
+    /*
+    build up the connects in sockfd_reflects
+    */
+
     int tep = fork();
-    if (tep < 0) perror ("fork error");
-    else if (!tep) { //child
-        while (transfer (sock1, sock2) != -1) ;
-        exit (0);
-    } else {
-        while (transfer (sock2, sock1) != -1) ;
-        exit (0);
+    if (tep < 0) {
+        perror ("fork error");
+        //exit(-1);
+        return -1;
+    } else if (!tep) { //child
+        child_proc_loop (sock1);
     }
-    return 0;
+    return tep;
 }
 
 
@@ -166,7 +175,7 @@ int mainloop() {
 
         cout << "get client->ip:" << inet_ntoa (client_addr.sin_addr) << "port :" << ntohs (client_addr.sin_port);
 
-        cout << "add client size:" << add_client (clientfd, &client_addr) << endl;
+        cout << "add client size:" << add_client (clientfd, &client_addr) << endl;///add client information
     }
 
     return -1;
