@@ -19,6 +19,7 @@
 #include <signal.h>
 #include <vector>
 #include <map>
+#include <algorithm>
 
 #define bufflen 2048
 #define serverport 2002
@@ -30,5 +31,6 @@ typedef struct client_info{
     struct sockaddr_in addr;
 }client_info;
 
-typedef vector<client_info>::iterator vec_client_iter
+typedef vector<client_info>::iterator vec_client_iter;
+typedef map<int, vector<int>>::iterator map_iv_iter;
 

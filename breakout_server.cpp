@@ -3,38 +3,64 @@
 ///////////////////////////////////////////////////////dataset/////////////////////////////////
 
 vector<client_info> kep_client;
-map<int , vector<int>> sockfd_reflects;
+map<int, vector<int>> sockfd_reflects;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void show_clients(){
-    int i=0;
-    for (i=0;i<kep_client.size();++i){
-        cout<<i<<":"<<"addr:"<<inet_ntoa (kep_client[i].addr.sin_addr)<<":"<<ntohs(kep_client[i].addr.sin_port)<<"  sockfd:"<<kep_client[i].sockfd<<endl;
+void show_clients() {
+    int i = 0;
+    cout << "\nclient info is:" << endl;
+    for (i = 0; i < kep_client.size(); ++i) {
+        cout << i << ":" << "addr:" << inet_ntoa (kep_client[i].addr.sin_addr) << ":" << ntohs (kep_client[i].addr.sin_port) << "  sockfd:" << kep_client[i].sockfd << endl;
     }
 }
 
-int add_client(int fd, struct sockaddr_in addr){
+int add_client (int fd, struct sockaddr_in *addr) {
     client_info tep;
-    tep.addr=addr;
-    tep.sockfd=fd;
+    tep.addr = *addr;
+    tep.sockfd = fd;
 
-    kep_client.push_back(tep);
+    kep_client.push_back (tep);
 
     return kep_client.size();
 }
 
-int erase_client(int fd){
+int erase_client (int fd) {
     vec_client_iter i;
-    for (i=kep_client.begin();i!=kep_client.end();i++){
-        if (i->sockfd==fd){
-            kep_client.erase(i);
+    for (i = kep_client.begin(); i != kep_client.end(); i++) {
+        if (i->sockfd == fd) {
+            kep_client.erase (i);
             return 1;
         }
     }
     return 0;
 }
+////////////////////////////////////////////////////////////////////////////////////
 
+int addtomap (int fd1, int fd2) {
+    map_iv_iter tep1;
+
+    tep1 = sockfd_reflects.find (fd1);
+
+
+    if (tep1 != sockfd_reflects.end()) {
+        if (find (tep1->second.begin(), tep1->second.end(), fd2) == tep1->second.end()) {
+            tep1->second.push_back (fd2);
+        }
+    } else {
+        vector<int > tep;
+        tep.push_back (fd2);
+        sockfd_reflects[fd1] = tep;
+    }
+    return sockfd_reflects.size();
+}
+
+int add_reflect (int fd1, int fd2) {
+    addtomap (fd1, fd2);
+    return addtomap (fd2, fd1);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
 
 void signal_handler (int signo) { //處理殭屍進程
     if (signo == SIGCHLD) {
@@ -45,24 +71,37 @@ void signal_handler (int signo) { //處理殭屍進程
     }
 }
 
-int transfer (int src_sock, int des_sock) {
+int transfer (int src_sock) {
+    /*
+    one node tranfer to those who connect to this node
+    */
     char buff[bufflen];
     int len = bufflen;
-    int getlen = 0, sendlen = 0;
+    int i;
+    int getlen = 0, sendlen = 0,sendlen_all=0;
 
     if ( (getlen = recv (src_sock, buff, len, 0)) <= 0) {
         perror ("recv error");
         return -1;
     }
 
-    if ( (sendlen = send (des_sock, buff, getlen, 0)) <= 0) {
-        perror ("send error");
-        return -1;
+    map_iv_iter tep1;
+    tep1 = sockfd_reflects.find (src_sock);
+    if (tep1 != sockfd_reflects.end() && tep1->second.size()>0) {
+
+        for (i = 0; i < tep1->second.size(); ++i) {
+
+            if ( (sendlen = send (tep1->second[i], buff, getlen, 0)) <= 0) {
+                perror ("send error");
+                return -1;
+            }
+            sendlen_all+=sendlen;
+        }
+        cout << "get:" << getlen << "  send average:" << sendlen_all/i << endl;
+
+        return sendlen_all/i;
     }
-
-    cout << "get:" << getlen << "  send:" << sendlen << endl;
-
-    return sendlen;
+    return -1;
 }
 
 int build_conn (int sock1, int sock2) {
@@ -75,8 +114,6 @@ int build_conn (int sock1, int sock2) {
         while (transfer (sock2, sock1) != -1) ;
         exit (0);
     }
-
-
     return 0;
 }
 
@@ -128,6 +165,8 @@ int mainloop() {
         }
 
         cout << "get client->ip:" << inet_ntoa (client_addr.sin_addr) << "port :" << ntohs (client_addr.sin_port);
+
+        cout << "add client size:" << add_client (clientfd, &client_addr) << endl;
     }
 
     return -1;
@@ -137,8 +176,9 @@ int mainloop() {
 
 int main() {
     signal (SIGCHLD, signal_handler);
+    mainloop();
 
-
+    /*
     int client2fd;
     struct sockaddr_in server_addr;
 
@@ -148,10 +188,10 @@ int main() {
     }
 
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons (22);   /* short, network byte order */
+    server_addr.sin_port = htons (22);
     server_addr.sin_addr.s_addr = inet_addr ("127.0.0.1");
 
-    bzero (& (server_addr.sin_zero), sizeof (server_addr.sin_zero));       /* zero the rest of the struct */
+    bzero (& (server_addr.sin_zero), sizeof (server_addr.sin_zero));
 
     cout << "connecting to " << inet_ntoa (server_addr.sin_addr) << ":" << ntohs (server_addr.sin_port) << endl;
     if (connect (client2fd, (struct sockaddr*) &server_addr, sizeof (struct sockaddr))  == -1) {
@@ -179,7 +219,7 @@ int main() {
 
         sleep (2);
     }
-
+    */
 
 
 
