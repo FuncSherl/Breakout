@@ -2,8 +2,8 @@
 
 ///////////////////////////////////////////////////////dataset/////////////////////////////////
 
-vector<client_info> kep_client;
-map<int, vector<int>> sockfd_reflects;
+vector<client_info> kep_client;//every client's info
+map<int, vector<int>> sockfd_reflects;//recv from a socket, send to every sockfd_reflects[a]
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -60,6 +60,36 @@ int add_reflect (int fd1, int fd2) {
     return addtomap (fd2, fd1);
 }
 
+int erasefrommap (int fd1, int fd2) {
+    map_iv_iter tep1;
+
+    tep1 = sockfd_reflects.find (fd1);
+
+
+    if (tep1 != sockfd_reflects.end()) {
+        vector<int >::iterator itetep = find (tep1->second.begin(), tep1->second.end(), fd2);
+        if (itetep != tep1->second.end()) {
+            tep1->second.erase (itetep);
+        }
+    }
+    return sockfd_reflects.size();
+}
+
+int erase_reflect (int fd1, int fd2) {
+    erasefrommap (fd1, fd2);
+    return erasefrommap (fd2, fd1);
+}
+
+int erase_map (int fd) {
+    map_iv_iter tep1;
+
+    tep1 = sockfd_reflects.find (fd);
+    if (tep1 != sockfd_reflects.end()) {
+        sockfd_reflects.erase (tep1);
+    }
+    return sockfd_reflects.size();
+}
+
 //////////////////////////////////////////////////////////////////////////////////////
 
 void signal_handler (int signo) { //處理殭屍進程
@@ -82,7 +112,9 @@ int transfer (int src_sock) {
 
     if ( (getlen = recv (src_sock, buff, len, 0)) <= 0) {
         perror ("recv error");
-        return -1;
+        erase_map (src_sock);
+        erase_client (src_sock);
+        //return -1;
     }
 
     map_iv_iter tep1;
