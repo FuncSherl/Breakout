@@ -22,7 +22,10 @@
 #include <algorithm>
 
 #define bufflen 2048
-#define serverport 2002
+#define serverport 2001
+#define serverport_end 2009
+
+#define server_configport 2010
 
 using namespace std;
 

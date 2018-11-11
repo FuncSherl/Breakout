@@ -16,6 +16,9 @@ void show_clients() {
 }
 
 int add_client (int fd, struct sockaddr_in *addr) {
+    for (vec_client_iter it=kep_client.begin();it!=kep_client.end();++it){
+        if (it->addr.sin_addr.s_addr==addr->sin_addr.s_addr && it->addr.sin_port==addr->sin_port) return 0;
+    }
     client_info tep;
     tep.addr = *addr;
     tep.sockfd = fd;
@@ -114,7 +117,7 @@ int transfer (int src_sock) {
         perror ("recv error");
         erase_map (src_sock);
         erase_client (src_sock);
-        //return -1;
+        return -1;
     }
 
     map_iv_iter tep1;
@@ -127,6 +130,7 @@ int transfer (int src_sock) {
                 perror ("send error,erasing the socket..");
                 //return 0;
                 tep1->second.erase (tep1->second.begin() + i);
+                if (tep1->second.size()<=0) return -1;
             }
             sendlen_all += sendlen;
         }
@@ -139,7 +143,7 @@ int transfer (int src_sock) {
 
 int child_proc_loop (int sock1) {
     while (transfer (sock1) != -1) ;
-    exit (-1);
+    //exit (-1);
 }
 
 int build_conn (int sock1) {
@@ -188,15 +192,16 @@ int buildserver (int port) {
     return sockfd;
 }
 
-int mainloop() {
+void* mainloop(void *p) {
+    int port =(long)p;
     int clientfd = 0, serverfd = 0;
     struct sockaddr_in client_addr;
 
-    serverfd = buildserver (serverport); //build up server, listending
+    serverfd = buildserver (port); //build up server, listending
 
     size_t tep = sizeof (struct sockaddr);
 
-    cout << "waiting to accept.." << endl;
+    cout << "port:"<<port<<"  waiting to accept.." << endl;
 
 
     while (1) {
@@ -210,14 +215,79 @@ int mainloop() {
         cout << "add client size:" << add_client (clientfd, &client_addr) << endl;///add client information
     }
 
-    return -1;
+    return NULL;
+}
+
+void *config_child_loop(void *p){
+    int sockfd =(long)p;
+    cout<<"client child get clientsocket:"<<sockfd<<endl;
+
+    char buff[bufflen];
+    int len = bufflen;
+
+
+    while ( recv (src_sock, buff, len, 0) > 0){
+
+    }
+
+}
+
+void* config_loop(void *por){
+    int clientfd = 0, serverfd = 0;
+    struct sockaddr_in client_addr;
+
+    serverfd = buildserver (server_configport); //build up server, listending
+
+    size_t tep = sizeof (struct sockaddr);
+
+    cout << "port:"<<server_configport<<"  waiting to accept.." << endl;
+
+
+    while (1) {
+        if ( (clientfd = accept (serverfd, (struct sockaddr*) &client_addr, (socklen_t*) &tep)) == -1) {
+            perror ("accept error..");
+            exit (-1);
+        }
+
+        cout << "configure get client->ip:" << inet_ntoa (client_addr.sin_addr) << "port :" << ntohs (client_addr.sin_port)<<" client fd:"<<clientfd<<endl;
+
+        //cout << "configure add client size:" << add_client (clientfd, &client_addr) << endl;///add client information
+
+        int tep;
+        if ( (tep=pthread_create(&loop[i-serverport], NULL, config_child_loop, (void*)clientfd))  ){
+            perror("configloop:create thread error:");
+            //exit(-1);
+        }
+
+
+    }
+
+    return NULL;
 }
 
 
 
 int main() {
     signal (SIGCHLD, signal_handler);
-    mainloop();
+
+
+
+    pthread_t loop[serverport_end-serverport+1];
+    for (int i=serverport;i<=serverport_end;i++){//many ports to reflect diff port to diff port
+        int tep;
+        if ( (tep=pthread_create(&loop[i-serverport], NULL, mainloop, (void*)i))  ){
+            perror("create mainloop thread error:");
+            exit(-1);
+        }
+        //mainloop(serverport);
+    }
+
+
+    config_loop(NULL);
+
+    cout<<"error hanppend:config_loop out"<<endl;
+    exit(-1);
+    //pthread_join(id, NULL);
 
     /*
     int client2fd;

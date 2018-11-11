@@ -3,7 +3,7 @@ TARGET=breakout_client breakout_server
 all:$(TARGET)
 
 %:%.cpp
-	g++ -o $@ $^
+	g++ -o $@ $^ -lpthread
 
 clean:
 	rm -rf *.o $(TARGET)
