@@ -2,40 +2,30 @@
 
 ///////////////////////////////////////////////////////dataset/////////////////////////////////
 
-vector<client_info> kep_client;//every client's info
+map<int , struct sockaddr_in> kep_client;//every client's info
 map<int, vector<int>> sockfd_reflects;//recv from a socket, send to every sockfd_reflects[a]
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void show_clients() {
-    int i = 0;
     cout << "\nclient info is:" << endl;
-    for (i = 0; i < kep_client.size(); ++i) {
-        cout << i << ":" << "addr:" << inet_ntoa (kep_client[i].addr.sin_addr) << ":" << ntohs (kep_client[i].addr.sin_port) << "  sockfd:" << kep_client[i].sockfd << endl;
+    for (map_iaddr_iter i = kep_client.begin(); i != kep_client.end(); ++i) {
+        cout << "sockfd:"<<i->first << " addr:" << inet_ntoa (i->second.sin_addr) << ":" << ntohs (i->second.sin_port) << endl;
     }
 }
 
 int add_client (int fd, struct sockaddr_in *addr) {
-    for (vec_client_iter it=kep_client.begin();it!=kep_client.end();++it){
-        if (it->addr.sin_addr.s_addr==addr->sin_addr.s_addr && it->addr.sin_port==addr->sin_port) return 0;
+    for (map_iaddr_iter it=kep_client.begin();it!=kep_client.end();++it){
+        if (it->second.sin_addr.s_addr==addr->sin_addr.s_addr && it->second.sin_port==addr->sin_port) return 0;
     }
-    client_info tep;
-    tep.addr = *addr;
-    tep.sockfd = fd;
-
-    kep_client.push_back (tep);
+    kep_client[fd]=*addr;
 
     return kep_client.size();
 }
 
 int erase_client (int fd) {
-    vec_client_iter i;
-    for (i = kep_client.begin(); i != kep_client.end(); i++) {
-        if (i->sockfd == fd) {
-            kep_client.erase (i);
-            return 1;
-        }
-    }
+    kep_client.erase (fd);
+
     return 0;
 }
 ////////////////////////////////////////////////////////////////////////////////////
@@ -226,7 +216,7 @@ void *config_child_loop(void *p){
     int len = bufflen;
 
 
-    while ( recv (src_sock, buff, len, 0) > 0){
+    while ( recv (sockfd, buff, len, 0) > 0){
 
     }
 
@@ -241,11 +231,11 @@ void* config_loop(void *por){
     size_t tep = sizeof (struct sockaddr);
 
     cout << "port:"<<server_configport<<"  waiting to accept.." << endl;
-
+    pthread_t thd;
 
     while (1) {
         if ( (clientfd = accept (serverfd, (struct sockaddr*) &client_addr, (socklen_t*) &tep)) == -1) {
-            perror ("accept error..");
+            perror ("configure accept error..");
             exit (-1);
         }
 
@@ -254,7 +244,7 @@ void* config_loop(void *por){
         //cout << "configure add client size:" << add_client (clientfd, &client_addr) << endl;///add client information
 
         int tep;
-        if ( (tep=pthread_create(&loop[i-serverport], NULL, config_child_loop, (void*)clientfd))  ){
+        if ( (tep=pthread_create(&thd, NULL, config_child_loop, (void*)clientfd))  ){
             perror("configloop:create thread error:");
             //exit(-1);
         }

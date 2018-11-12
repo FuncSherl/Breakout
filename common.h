@@ -1,4 +1,3 @@
-
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -22,18 +21,25 @@
 #include <algorithm>
 
 #define bufflen 2048
-#define serverport 2001
-#define serverport_end 2009
 
-#define server_configport 2010
+
+#define serverport 7001
+#define serverport_end 7020
+
+
+#define server_configport 7000
 
 using namespace std;
 
-typedef struct client_info{
+typedef struct client_info {
     int sockfd;
     struct sockaddr_in addr;
-}client_info;
+} client_info;
 
 typedef vector<client_info>::iterator vec_client_iter;
 typedef map<int, vector<int>>::iterator map_iv_iter;
+typedef map<int, struct sockaddr_in>::iterator map_iaddr_iter;
+
+enum ops {connect_clients, disconnect_clients, showips_clients};
+
 
