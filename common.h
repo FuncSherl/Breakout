@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
-#include<netinet/tcp.h>
+#include <netinet/tcp.h>
 
 #include <vector>
 #include <map>
@@ -24,9 +24,11 @@
 
 #define bufflen 2048
 
-
+//here define the server reflect ports
 #define serverport 7001
 #define serverport_end 7050
+
+/////////////////////////////////
 
 
 #define server_configport 7000
