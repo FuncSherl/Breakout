@@ -8,12 +8,13 @@ int main (int argc, char *argv[]) {
     */
     if (argc != 4) {
         cout << "usage:client_v2  serverip  serverport  localport  " << endl;
-        cout << "serverip  (your server's ip)" <, endl;
+        cout << "serverip  (your server's ip)" << endl;
         cout << "serverport (which server port you want to connect to server,this should equal the other side's port   eg.ssh  root@serverip -p serverport)" << endl;
         cout << "which port you want to expose,for ssh it should be 22" << endl;
 
         return 0;
     }
+    signal (SIGCHLD, signal_handler);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     struct sockaddr_in serveraddr;
 
@@ -38,7 +39,7 @@ int main (int argc, char *argv[]) {
         perror ( "couldn't build socket.." );
         exit ( -1 );
     }
-    if ( ( sock_client = socket ( AF_INET, SOCK_STREAM, 0 ) ) == -1 ) {
+    if ( ( sock_local = socket ( AF_INET, SOCK_STREAM, 0 ) ) == -1 ) {
         perror ( "couldn't build socket.." );
         exit ( -1 );
     }
@@ -54,6 +55,7 @@ int main (int argc, char *argv[]) {
             exit (-1);
         }
 
+        build_conn(sock_server, sock_local);
 
 
 

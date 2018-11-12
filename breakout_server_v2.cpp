@@ -1,13 +1,5 @@
 #include "common.h"
 
-void signal_handler (int signo) { //處理殭屍進程
-    if (signo == SIGCHLD) {
-        pid_t pid;
-        while ( (pid = waitpid (-1, NULL, WNOHANG)) > 0) {//WNOHANG 若pid指定的子进程没有结束，则waitpid()函数返回0，不予以等待。若结束，则返回该子进程的ID。
-            cout << ("SIGCHLD pid ") << pid << endl;
-        }
-    }
-}
 
 
 int mainloop (int port) {
@@ -63,7 +55,7 @@ int main() {
     }
     cout << "port:" << serverport << " to " << serverport_end << "fork done!" << endl;
 
-    while (1) {
+    while (1) {//after make all the forks, the main process do as a guard
         int tepid = wait (NULL);//don't care how it ends
 
         for (i = 0; i < serverport_end - serverport + 1; ++i) {

@@ -85,15 +85,6 @@ int erase_map (int fd) {
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-void signal_handler (int signo) { //處理殭屍進程
-    if (signo == SIGCHLD) {
-        pid_t pid;
-        while ( (pid = waitpid (-1, NULL, WNOHANG)) > 0) {//WNOHANG 若pid指定的子进程没有结束，则waitpid()函数返回0，不予以等待。若结束，则返回该子进程的ID。
-            cout << ("SIGCHLD pid ") << pid << endl;
-        }
-    }
-}
-
 int transfer (int src_sock) {
     /*
     one node tranfer to those who connect to this node
@@ -153,34 +144,7 @@ int build_conn (int sock1) {
 }
 
 
-int buildserver (int port) {
-    int sockfd;
 
-    struct sockaddr_in my_addr;
-
-    if ( (sockfd = socket (AF_INET, SOCK_STREAM, 0)) == -1) {
-        perror ("couldn't build socket..");
-        exit (-1);
-    }
-
-    cout << "get socket:" << sockfd << endl;
-
-    my_addr.sin_family = AF_INET; /* host byte order */
-    my_addr.sin_port = htons (port);   /* short, network byte order */
-    my_addr.sin_addr.s_addr = htons (INADDR_ANY);
-
-    bzero (& (my_addr.sin_zero), sizeof (my_addr.sin_zero));       /* zero the rest of the struct */
-
-
-    if (bind (sockfd, (struct sockaddr*) &my_addr, sizeof (struct sockaddr)) == -1) {
-        perror ("bind error:");
-        exit (-1);
-    }
-
-    listen (sockfd, 20);
-    cout << "listening in port:" << port << endl;
-    return sockfd;
-}
 
 void* mainloop(void *p) {
     int port =(long)p;

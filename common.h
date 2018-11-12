@@ -44,6 +44,16 @@ enum ops {connect_clients, disconnect_clients, showips_clients};
 
 
 
+void signal_handler (int signo) { //處理殭屍進程
+    if (signo == SIGCHLD) {
+        pid_t pid;
+        while ( (pid = waitpid (-1, NULL, WNOHANG)) > 0) {//WNOHANG 若pid指定的子进程没有结束，则waitpid()函数返回0，不予以等待。若结束，则返回该子进程的ID。
+            cout << ("SIGCHLD pid ") << pid << endl;
+        }
+    }
+}
+
+
 int buildserver (int port) {
     int sockfd;
 
@@ -54,7 +64,7 @@ int buildserver (int port) {
         exit (-1);
     }
 
-    cout << "get socket:" << sockfd << endl;
+    cout << "\nget socket:" << sockfd << endl;
 
     my_addr.sin_family = AF_INET; /* host byte order */
     my_addr.sin_port = htons (port);   /* short, network byte order */
