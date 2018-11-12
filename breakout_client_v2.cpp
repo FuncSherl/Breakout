@@ -44,11 +44,11 @@ int main (int argc, char *argv[]) {
         exit (-1);
     }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    struct tcp_info info;
-    int len = sizeof (info);
+    struct tcp_info info1,info2;
+    int len = sizeof (info1);
     while (1) {
-        getsockopt (sock_server, IPPROTO_TCP, TCP_INFO, &info, (socklen_t *) &len);
-        if (info.tcpi_state != TCP_ESTABLISHED) {
+        getsockopt (sock_server, IPPROTO_TCP, TCP_INFO, &info1, (socklen_t *) &len);
+        if (info1.tcpi_state != TCP_ESTABLISHED) {
             close (sock_server);
             if ( (sock_server = socket (AF_INET, SOCK_STREAM, 0)) == -1) {
                 perror ("couldn't build socket..");
@@ -63,8 +63,8 @@ int main (int argc, char *argv[]) {
         }
 
 
-        getsockopt (sock_local, IPPROTO_TCP, TCP_INFO, &info, (socklen_t *) &len);
-        if (info.tcpi_state != TCP_ESTABLISHED) {
+        getsockopt (sock_local, IPPROTO_TCP, TCP_INFO, &info2, (socklen_t *) &len);
+        if (info2.tcpi_state != TCP_ESTABLISHED) {
 
             close (sock_local);
             if ( (sock_local = socket (AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -81,7 +81,17 @@ int main (int argc, char *argv[]) {
 
         cout<<"socket server<-->local done"<<endl;
 
-        build_conn (sock_server, sock_local);
+
+        getsockopt (sock_server, IPPROTO_TCP, TCP_INFO, &info1, (socklen_t *) &len);
+        getsockopt (sock_local, IPPROTO_TCP, TCP_INFO, &info2, (socklen_t *) &len);
+
+        if (info1.tcpi_state == TCP_ESTABLISHED && info2.tcpi_state == TCP_ESTABLISHED){
+            build_conn (sock_server, sock_local);
+        }else{
+            cout<<"still at least one socket no connected"<<endl;
+        }
+
+        
 
         //close(sock_local);
         //close(sock_server);

@@ -26,7 +26,7 @@
 
 
 #define serverport 7001
-#define serverport_end 7020
+#define serverport_end 7050
 
 
 #define server_configport 7000
@@ -39,7 +39,7 @@ typedef struct client_info {
 } client_info;
 
 typedef vector<client_info>::iterator vec_client_iter;
-typedef map<int, vector<int>>::iterator map_iv_iter;
+typedef map<int, vector<int> >::iterator map_iv_iter;
 typedef map<int, struct sockaddr_in>::iterator map_iaddr_iter;
 
 enum ops {connect_clients, disconnect_clients, showips_clients};
@@ -130,10 +130,28 @@ int build_conn (int sock1, int sock2) {
     } else if (!tep) { //child
 
         while (transfer (sock1, sock2) != -1);
+        cout<<"build_conn child1 out"<<endl;
         exit (-1);
-    } else {
+    } 
+    cout<<"build_conn:build child1 process pid:"<<tep<<endl;
+
+    int tep2=fork();
+    if (tep2 < 0) {
+        perror ("fork error");
+        //exit(-1);
+        return -1;
+    } else if (!tep2) { //child
         while (transfer (sock2, sock1) != -1);
+        cout<<"build_conn child2 out"<<endl;
+        exit (-1);
+    } 
+    cout<<"build_conn:build child2 process pid:"<<tep2<<endl;
+
+    while(waitpid (tep, NULL, WNOHANG)==0 && waitpid (tep2, NULL, WNOHANG)==0);
+    //if (!waitpid (tep, NULL, WNOHANG)) 
         kill (tep, SIGKILL);
-    }
+    //if (!waitpid (tep2, NULL, WNOHANG)) 
+        kill (tep2, SIGKILL);
+
     return tep;
 }

@@ -13,26 +13,43 @@ int mainloop (int port) {
 
     size_t tep = sizeof (struct sockaddr);
 
-    cout << "port:" << port << "  waiting to accept.." << endl;
+
+    struct tcp_info info1,info2;
+    int len = sizeof (struct tcp_info);
 
 
     while (1) {
-        if ( (clientfd = accept (serverfd, (struct sockaddr*) &client_addr, (socklen_t*) &tep)) == -1) {
-            perror ("accept error..");
-            exit (-1);
+        getsockopt (clientfd, IPPROTO_TCP, TCP_INFO, &info1, (socklen_t *) &len);
+        if (info1.tcpi_state != TCP_ESTABLISHED) {
+            cout<<"waiting for first client.."<<endl;
+            if ( (clientfd = accept (serverfd, (struct sockaddr*) &client_addr, (socklen_t*) &tep)) == -1) {
+                perror ("accept error..");
+                exit (-1);
+            }
+            cout << "get first client->ip:" << inet_ntoa (client_addr.sin_addr) << "port :" << ntohs (client_addr.sin_port);
         }
-        cout << "get first client->ip:" << inet_ntoa (client_addr.sin_addr) << "port :" << ntohs (client_addr.sin_port);
 
 
         tep = sizeof (struct sockaddr);
-        if ( (fromfd = accept (serverfd, (struct sockaddr*) &from_addr, (socklen_t*) &tep)) == -1) {
-            perror ("accept error..");
-            exit (-1);
+
+        getsockopt (fromfd, IPPROTO_TCP, TCP_INFO, &info2, (socklen_t *) &len);
+        if (info2.tcpi_state != TCP_ESTABLISHED) {
+            cout<<"waiting for second client.."<<endl;
+            if ( (fromfd = accept (serverfd, (struct sockaddr*) &from_addr, (socklen_t*) &tep)) == -1) {
+                perror ("accept error..");
+                exit (-1);
+            }
+            cout << "get another client->ip:" << inet_ntoa (from_addr.sin_addr) << "port :" << ntohs (from_addr.sin_port);
         }
-        cout << "get another client->ip:" << inet_ntoa (from_addr.sin_addr) << "port :" << ntohs (from_addr.sin_port);
 
-        build_conn (clientfd, fromfd);
+        getsockopt (clientfd, IPPROTO_TCP, TCP_INFO, &info1, (socklen_t *) &len);
+        getsockopt (fromfd, IPPROTO_TCP, TCP_INFO, &info2, (socklen_t *) &len);
 
+        if (info1.tcpi_state == TCP_ESTABLISHED && info2.tcpi_state == TCP_ESTABLISHED){
+            build_conn (clientfd, fromfd);
+        }else{
+            cout<<"\nstill at least one socket no connected"<<endl;
+        }
         //cout << "add client size:" << add_client (clientfd, &client_addr) << endl;///add client information
     }
 
@@ -50,10 +67,12 @@ int main() {
         if (tep < 0) {
             perror ("main: fork error");
         } else if (!tep) {
+            signal (SIGCHLD, signal_handler);
             mainloop (i);
             exit (-1);
         }
         kep_pid[i - serverport] = tep;
+        cout<<"buid child process pid:"<<tep<<endl;
     }
     cout << "port:" << serverport << " to " << serverport_end << "fork done!" << endl;
 
