@@ -16,6 +16,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include<netinet/tcp.h>
+
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -88,6 +90,7 @@ int buildserver (int port) {
     return sockfd;
 }
 
+
 int transfer (int src_sock, int to_sock) {
     /*
     one node tranfer to those who connect to this node
@@ -98,17 +101,17 @@ int transfer (int src_sock, int to_sock) {
     int getlen = 0, sendlen = 0;
 
     if ( (getlen = recv (src_sock, buff, len, 0)) <= 0) {
-        perror ("recv error");
+        perror ("transfer:recv error");
 
         return -1;
     }
 
     if ( (sendlen = send (to_sock, buff, getlen, 0)) <= 0) {
-        perror ("send error ");
+        perror ("transfer:send error ");
         return -1;
     }
 
-    cout << "get:" << getlen << "  send :" << sendlen << endl;
+    //cout << "transfer:get:" << getlen << "  send :" << sendlen << endl;
 
     return sendlen;
 }
@@ -125,6 +128,7 @@ int build_conn (int sock1, int sock2) {
         //exit(-1);
         return -1;
     } else if (!tep) { //child
+
         while (transfer (sock1, sock2) != -1);
         exit (-1);
     } else {

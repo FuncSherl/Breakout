@@ -21,15 +21,17 @@ int mainloop (int port) {
             perror ("accept error..");
             exit (-1);
         }
+        cout << "get first client->ip:" << inet_ntoa (client_addr.sin_addr) << "port :" << ntohs (client_addr.sin_port);
+
 
         tep = sizeof (struct sockaddr);
         if ( (fromfd = accept (serverfd, (struct sockaddr*) &from_addr, (socklen_t*) &tep)) == -1) {
             perror ("accept error..");
             exit (-1);
         }
-        build_conn (clientfd, fromfd);
+        cout << "get another client->ip:" << inet_ntoa (from_addr.sin_addr) << "port :" << ntohs (from_addr.sin_port);
 
-        //cout << "get client->ip:" << inet_ntoa (client_addr.sin_addr) << "port :" << ntohs (client_addr.sin_port);
+        build_conn (clientfd, fromfd);
 
         //cout << "add client size:" << add_client (clientfd, &client_addr) << endl;///add client information
     }

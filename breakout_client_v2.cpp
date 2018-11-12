@@ -7,7 +7,7 @@ int main (int argc, char *argv[]) {
         client_v2 serverip serverport localport
     */
     if (argc != 4) {
-        cout << "usage:client_v2  serverip  serverport  localport  " << endl;
+        cout << "\nusage:\nbreakout_client_v2  serverip  serverport  localport  " << endl;
         cout << "serverip  (your server's ip)" << endl;
         cout << "serverport (which server port you want to connect to server,this should equal the other side's port   eg.ssh  root@serverip -p serverport)" << endl;
         cout << "which port you want to expose,for ssh it should be 22" << endl;
@@ -35,34 +35,58 @@ int main (int argc, char *argv[]) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     int sock_server, sock_local;
 
-    if ( ( sock_server = socket ( AF_INET, SOCK_STREAM, 0 ) ) == -1 ) {
-        perror ( "couldn't build socket.." );
-        exit ( -1 );
+    if ( (sock_server = socket (AF_INET, SOCK_STREAM, 0)) == -1) {
+        perror ("couldn't build socket..");
+        exit (-1);
     }
-    if ( ( sock_local = socket ( AF_INET, SOCK_STREAM, 0 ) ) == -1 ) {
-        perror ( "couldn't build socket.." );
-        exit ( -1 );
+    if ( (sock_local = socket (AF_INET, SOCK_STREAM, 0)) == -1) {
+        perror ("couldn't build socket..");
+        exit (-1);
     }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    struct tcp_info info;
+    int len = sizeof (info);
     while (1) {
-        if (connect (sock_server, (struct sockaddr*) &serveraddr, sizeof (struct sockaddr))  == -1) {
-            perror ("connect to server error..");
-            exit (-1);
+        getsockopt (sock_server, IPPROTO_TCP, TCP_INFO, &info, (socklen_t *) &len);
+        if (info.tcpi_state != TCP_ESTABLISHED) {
+            close (sock_server);
+            if ( (sock_server = socket (AF_INET, SOCK_STREAM, 0)) == -1) {
+                perror ("couldn't build socket..");
+                exit (-1);
+            }
+
+            if (connect (sock_server, (struct sockaddr*) &serveraddr, sizeof (struct sockaddr))  == -1) {
+                perror ("connect to server error..");
+                exit (-1);
+            }
+            cout << "connected to server" << endl;
         }
 
-        if (connect (sock_local, (struct sockaddr*) &localaddr, sizeof (struct sockaddr))  == -1) {
-            perror ("connect to localport error..");
-            exit (-1);
+
+        getsockopt (sock_local, IPPROTO_TCP, TCP_INFO, &info, (socklen_t *) &len);
+        if (info.tcpi_state != TCP_ESTABLISHED) {
+
+            close (sock_local);
+            if ( (sock_local = socket (AF_INET, SOCK_STREAM, 0)) == -1) {
+                perror ("couldn't build socket..");
+                exit (-1);
+            }
+
+            if (connect (sock_local, (struct sockaddr*) &localaddr, sizeof (struct sockaddr))  == -1) {
+                perror ("connect to localport error..");
+                exit (-1);
+            }
+            cout << "connected to local port" << endl;
         }
 
-        build_conn(sock_server, sock_local);
+        cout<<"socket server<-->local done"<<endl;
 
+        build_conn (sock_server, sock_local);
 
+        //close(sock_local);
+        //close(sock_server);
 
-        close(sock_local);
-        close(sock_server);
-
-        sleep(3);
+        //sleep (3);
     }
 
 
