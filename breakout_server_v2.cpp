@@ -24,7 +24,7 @@ int mainloop (int port) {
             cout<<"waiting for first client.."<<endl;
             if ( (clientfd = accept (serverfd, (struct sockaddr*) &client_addr, (socklen_t*) &tep)) == -1) {
                 perror ("accept error..");
-                exit (-1);
+                //exit (-1);
             }
             cout << "get first client->ip:" << inet_ntoa (client_addr.sin_addr) << "port :" << ntohs (client_addr.sin_port);
         }
@@ -37,7 +37,7 @@ int mainloop (int port) {
             cout<<"waiting for second client.."<<endl;
             if ( (fromfd = accept (serverfd, (struct sockaddr*) &from_addr, (socklen_t*) &tep)) == -1) {
                 perror ("accept error..");
-                exit (-1);
+                //exit (-1);
             }
             cout << "get another client->ip:" << inet_ntoa (from_addr.sin_addr) << "port :" << ntohs (from_addr.sin_port);
         }
@@ -50,6 +50,7 @@ int mainloop (int port) {
         }else{
             cout<<"\nstill at least one socket no connected"<<endl;
         }
+        sleep(3);
         //cout << "add client size:" << add_client (clientfd, &client_addr) << endl;///add client information
     }
 
