@@ -149,7 +149,7 @@ int build_conn (int sock1, int sock2) {
     } 
     cout<<"build_conn:build child2 process pid:"<<tep2<<endl;
 
-    while(waitpid (tep, NULL, WNOHANG)==0 && waitpid (tep2, NULL, WNOHANG)==0);
+    while(waitpid (tep, NULL, WNOHANG)==0 && waitpid (tep2, NULL, WNOHANG)==0) sleep(3);
     //if (!waitpid (tep, NULL, WNOHANG)) 
         kill (tep, SIGKILL);
     //if (!waitpid (tep2, NULL, WNOHANG)) 
