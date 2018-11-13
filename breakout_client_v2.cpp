@@ -57,7 +57,7 @@ int main (int argc, char *argv[]) {
 
             if (connect (sock_server, (struct sockaddr*) &serveraddr, sizeof (struct sockaddr))  == -1) {
                 perror ("connect to server error..");
-                exit (-1);
+                //exit (-1);
             }
             cout << "connected to server" << endl;
         }
@@ -74,7 +74,7 @@ int main (int argc, char *argv[]) {
 
             if (connect (sock_local, (struct sockaddr*) &localaddr, sizeof (struct sockaddr))  == -1) {
                 perror ("connect to localport error..");
-                exit (-1);
+                //exit (-1);
             }
             cout << "connected to local port" << endl;
         }
@@ -96,7 +96,7 @@ int main (int argc, char *argv[]) {
         //close(sock_local);
         //close(sock_server);
 
-        //sleep (3);
+        sleep (3);
     }
 
 
