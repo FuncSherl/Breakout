@@ -1,6 +1,7 @@
 # Breakout
-目标：内网穿透
-需求：一台公网服务器(需求公网ip)
+目标：内网穿透<br>
+需求：一台公网服务器(需求公网ip)<br>
+注：仅限于Linux系统<br>
 
 现有clientA、clientB、server，想要clientA连内网中的clientB，以ssh为例:<br>
 1、makefile目录下执行make<br>
