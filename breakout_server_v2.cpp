@@ -16,30 +16,58 @@ int mainloop (int port) {
 
     struct tcp_info info1,info2;
     int len = sizeof (struct tcp_info);
-
+    int cnt_while=0;
 
     while (1) {
-        getsockopt (clientfd, IPPROTO_TCP, TCP_INFO, &info1, (socklen_t *) &len);
-        if (info1.tcpi_state != TCP_ESTABLISHED) {
-            cout<<"waiting for first client.."<<endl;
-            if ( (clientfd = accept (serverfd, (struct sockaddr*) &client_addr, (socklen_t*) &tep)) == -1) {
-                perror ("accept error..");
-                //exit (-1);
+        cout<<"\ncnt_while:"<<cnt_while++<<endl;
+
+        while(1){
+            getsockopt (clientfd, IPPROTO_TCP, TCP_INFO, &info1, (socklen_t *) &len);
+            if (info1.tcpi_state != TCP_ESTABLISHED) {
+                cout<<"waiting for first client.."<<endl;
+                clientfd = accept (serverfd, (struct sockaddr*) &client_addr, (socklen_t*) &tep);
+                if ( clientfd >0){//
+                    cout<<"success:"<<port<<endl;
+                }else if(clientfd ==-1 && errno==EWOULDBLOCK ){
+                    continue;
+                }else{
+                    perror ("accept error..");
+                    //exit (-1);
+                    sleep(4);
+                }
+                
+            }else{
+                cout<<"from port:"<<port<<endl;
+                cout << "get first client->ip:" << inet_ntoa (client_addr.sin_addr) << "  port :" << ntohs (client_addr.sin_port)<<endl;
+                break;
             }
-            cout << "get first client->ip:" << inet_ntoa (client_addr.sin_addr) << "port :" << ntohs (client_addr.sin_port);
+            
         }
 
 
         tep = sizeof (struct sockaddr);
 
-        getsockopt (fromfd, IPPROTO_TCP, TCP_INFO, &info2, (socklen_t *) &len);
-        if (info2.tcpi_state != TCP_ESTABLISHED) {
-            cout<<"waiting for second client.."<<endl;
-            if ( (fromfd = accept (serverfd, (struct sockaddr*) &from_addr, (socklen_t*) &tep)) == -1) {
-                perror ("accept error..");
-                //exit (-1);
+        while (1){
+            getsockopt (fromfd, IPPROTO_TCP, TCP_INFO, &info2, (socklen_t *) &len);
+            if (info2.tcpi_state != TCP_ESTABLISHED) {
+                cout<<"waiting for second client.."<<endl;
+
+                fromfd = accept (serverfd, (struct sockaddr*) &from_addr, (socklen_t*) &tep);                
+                if ( fromfd >0){//
+                    cout<<"success:"<<port<<endl;
+                }else if(fromfd ==-1 && errno==EWOULDBLOCK ){
+                    
+                }else{
+                    perror ("accept error..");
+                    //exit (-1);
+                    sleep(4);
+                }               
+            }else{
+                cout<<"from port:"<<port<<endl;
+                cout << "get another client->ip:" << inet_ntoa (from_addr.sin_addr) << "port :" << ntohs (from_addr.sin_port);
+                break;
             }
-            cout << "get another client->ip:" << inet_ntoa (from_addr.sin_addr) << "port :" << ntohs (from_addr.sin_port);
+            
         }
 
         getsockopt (clientfd, IPPROTO_TCP, TCP_INFO, &info1, (socklen_t *) &len);
@@ -47,12 +75,18 @@ int mainloop (int port) {
 
         if (info1.tcpi_state == TCP_ESTABLISHED && info2.tcpi_state == TCP_ESTABLISHED){
             build_conn (clientfd, fromfd);
+            //cout<<"now close the two socket"<<endl;
+            //close(clientfd);
+            //close(fromfd);
         }else{
-            cout<<"\nstill at least one socket no connected"<<endl;
+            cout<<"\nstill at least one socket not connected!!!!"<<endl;
         }
         sleep(3);
         //cout << "add client size:" << add_client (clientfd, &client_addr) << endl;///add client information
     }
+    close(serverfd);
+    close(clientfd);
+    close(fromfd);
 
     return 0;
 }

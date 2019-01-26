@@ -22,7 +22,7 @@
 #include <map>
 #include <algorithm>
 
-#define bufflen 2048
+#define bufflen 2048*3
 
 //here define the server reflect ports
 #define serverport 7001
@@ -57,6 +57,26 @@ void signal_handler (int signo) { //處理殭屍進程
     }
 }
 
+void getnewsocket(int &fd){
+    if (fd>0) close(fd); 
+    if ( (fd = socket (AF_INET, SOCK_STREAM, 0)) == -1) {
+        perror ("couldn't build socket..");
+        exit (-1);
+    }
+}
+
+int setnoblock(int &m_sock){
+    int flags = fcntl(m_sock, F_GETFL, 0);
+    return fcntl(m_sock, F_SETFL, flags|O_NONBLOCK);
+}
+
+int getsockstatus(int sd){ //0->everything is ok   
+    int optval;
+    socklen_t optlen = sizeof(int);
+
+    getsockopt(sd, SOL_SOCKET, SO_ERROR,(char*) &optval, &optlen);
+    return optval;
+}
 
 int buildserver (int port) {
     int sockfd;
@@ -96,26 +116,47 @@ int buildserver (int port) {
 int transfer (int src_sock, int to_sock) {
     /*
     one node tranfer to those who connect to this node
+    both node should be noblock
     */
     char buff[bufflen];
     int len = bufflen;
     int i;
     int getlen = 0, sendlen = 0;
 
-    if ( (getlen = recv (src_sock, buff, len, 0)) <= 0) {
+    getlen = recv (src_sock, buff, len, 0);
+    /*
+    boblock:
+    recv返回>0，   正常
+    返回-1，而且errno被置为EWOULDBLOCK(11)  正常
+    其它情况    关闭
+    */
+
+    if (getlen>0) {//get data and ready to send
+
+        int retry=0;
+        while (1){//constantly send data unless link is broken
+            sendlen = send (to_sock, buff, getlen, 0);
+
+            if ( sendlen>0 ){//send success
+                return sendlen;
+            }else if(sendlen==-1 && errno==EWOULDBLOCK && retry<=10){//should be blocked,max retry 10 times
+                ++retry;
+                continue;  
+            }else{
+                perror ("transfer:send error ");
+                return -1;
+            }
+        }
+
+
+    }else if (getlen==-1 && errno==EWOULDBLOCK){//noblock cause this
+        return 0;
+    }
+    else{
         perror ("transfer:recv error");
-
         return -1;
     }
-
-    if ( (sendlen = send (to_sock, buff, getlen, 0)) <= 0) {
-        perror ("transfer:send error ");
-        return -1;
-    }
-
     //cout << "transfer:get:" << getlen << "  send :" << sendlen << endl;
-
-    return sendlen;
 }
 
 
