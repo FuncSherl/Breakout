@@ -22,7 +22,7 @@
 #include <map>
 #include <algorithm>
 
-#define bufflen 2048*3
+#define bufflen 2048*6
 
 //here define the server reflect ports
 #define serverport 7001
