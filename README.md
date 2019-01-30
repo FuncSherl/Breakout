@@ -10,5 +10,5 @@
 其中serverip就是服务器公网ip，serverport就是服务器映射的端口，默认下在7001-7050（common.h里面可以修改），<br>这个端口这里可以任选，但是要和待会ssh里设置的端口一致，localport就是想要将clientB中哪个端口映射出去，如ssh就是22<br>
 4、假如localport=7001，则在clientA上运行ssh username@serverip -p 7001<br>
 
-出现错误： message authentication code incorrect就多重连2次就好
+出现错误： message authentication code incorrect就多重连2次就好 <br>
 enjoy<br>
