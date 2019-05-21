@@ -54,7 +54,7 @@ void show_time(){
     
     ttime = localtime(&tt);
     strftime(now,64,"%Y-%m-%d %H:%M:%S",ttime);
-    cout << now << ":"<<endl;
+    cout << now<<endl;
 }
 
 

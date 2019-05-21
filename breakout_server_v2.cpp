@@ -19,8 +19,9 @@ int mainloop (int port) {
     int cnt_while=0;
 
     while (1) {
+	cout<<endl;
 	show_time();
-        cout<<"\ncnt_while:"<<cnt_while++<<endl;
+        cout<<"cnt_while:"<<cnt_while++<<endl;
 
         while(1){
             getsockopt (clientfd, IPPROTO_TCP, TCP_INFO, &info1, (socklen_t *) &len);

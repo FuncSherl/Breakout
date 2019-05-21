@@ -49,8 +49,9 @@ int main (int argc, char *argv[]) {
     char tep_char;
 
     while (1) {
+	cout<<endl;
 	show_time();
-        cout<<"\ncnt_while:"<<cnt_while++<<endl;
+        cout<<"cnt_while:"<<cnt_while++<<endl;
 
         while (1){
             getsockopt (sock_server, IPPROTO_TCP, TCP_INFO, &info1, (socklen_t *) &len);
