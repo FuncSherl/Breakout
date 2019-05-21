@@ -49,6 +49,7 @@ int main (int argc, char *argv[]) {
     char tep_char;
 
     while (1) {
+	show_time();
         cout<<"\ncnt_while:"<<cnt_while++<<endl;
 
         while (1){

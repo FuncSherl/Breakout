@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <netinet/tcp.h>
+#include <sys/time.h>
 
 #include <vector>
 #include <map>
@@ -45,6 +46,16 @@ typedef map<int, vector<int> >::iterator map_iv_iter;
 typedef map<int, struct sockaddr_in>::iterator map_iaddr_iter;
 
 enum ops {connect_clients, disconnect_clients, showips_clients};
+
+void show_time(){
+    char now[64];
+    time_t tt=time(NULL);
+    struct tm *ttime;
+    
+    ttime = localtime(&tt);
+    strftime(now,64,"%Y-%m-%d %H:%M:%S",ttime);
+    cout << now << ":"<<endl;
+}
 
 
 

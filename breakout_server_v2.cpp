@@ -19,6 +19,7 @@ int mainloop (int port) {
     int cnt_while=0;
 
     while (1) {
+	show_time();
         cout<<"\ncnt_while:"<<cnt_while++<<endl;
 
         while(1){
