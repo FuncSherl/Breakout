@@ -18,4 +18,4 @@ enjoy<br>
 
 后续在另一工程中用python重写了内网穿透功能： `https://github.com/functionxu123/RespPiPlays/` 该实现配置性和完备性较好
 
-虽然内网穿透功能在此工程中只占一部分，但是独立出来作为一个单独的功能也是可以的，具体查看：`https://github.com/functionxu123/RespPiPlays/tree/master/0001_CamMonitor#2--`
+虽然内网穿透功能在此工程中只占一部分，但是独立出来作为一个单独的功能也是可以的，具体查看：`https://github.com/functionxu123/RaspPiPlays/tree/master/0001_CamMonitor#2--`
